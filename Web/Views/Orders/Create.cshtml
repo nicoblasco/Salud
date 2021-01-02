@@ -1,0 +1,145 @@
+﻿@model TemplateNBL.ViewModel.OrderCreateViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.Hidden("RedirectTo", Url.Action("Index", "Orders"));
+    @Html.AntiForgeryToken()
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="page-header">@ViewBag.Title</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Insumo</th>
+                                <th scope="col">Tipo</th>
+                                <th scope="col">Stock</th>
+                                <th scope="col">Pedido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderProductViewModels.OrderBy(x => x.Product))
+                            {
+                                <tr>
+                                    <th scope="row" id="row">@item.ProductId</th>
+                                    <td>
+                                        @item.Product
+                                    </td>
+                                    <td>@item.ProductType</td>
+                                    <td>@item.Stock</td>
+
+                                    <td>
+                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" @{ if (item.OutStock.Value) { @: disabled="disabled"
+                                               } }>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div style="float:right">
+            <button type="button" id="btnGuardar" class="btn btn-primary">Guardar</button>
+            <button type="button" id="btnCancelar" class="btn btn-link">Cancelar</button>
+            @Html.ActionLink("Volver", "Index", "Orders", new { @class = "btn btn-secondary" })
+        </div>
+
+    </div>
+
+    <div id="div-loader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8; display: none">
+        <p style="position: absolute; color: White; top: 35%; left: 45%;">
+            <img src=@Url.Content("~/Images/loading.gif") alt="Loading...">
+        </p>
+    </div>
+
+}
+
+@section scripts {
+
+    <script>
+    $(document).on('click', '#btnGuardar', function () {
+        $("#div-loader").show();
+        var objOrder = new Object();
+        var arrObj = [];
+        $("tbody").find("tr").each(function (product, index) {
+            var objProducts = new Object();
+            var quantity = $(index).find('#quantity').val();
+            var id = $(index).find('#row').text();
+
+            if (quantity > 0) {
+                objProducts.ProductId = id;
+                objProducts.Quantity = quantity;
+                arrObj.push(objProducts);
+            }
+            id = ''
+            quantity = '';
+        })
+        objOrder.CenterId = @Html.Raw(Json.Encode(Model.CenterId));
+        objOrder.OrderProductViewModels = arrObj;
+
+        if (arrObj.length == 0) {
+            $("#div-loader").hide();
+            Lobibox.notify('warning', {
+                title: 'Atención',
+                msg: 'Debe cargar al menos un producto'
+            });
+            return;
+        }
+
+        var data = JSON.stringify(objOrder);
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("CreateOrder")',
+            data: data,
+            contentType: 'application/json; charset=utf-8;',
+            dataType: 'json',
+            success: function (result) {
+                $("#div-loader").hide();
+                Lobibox.notify('success', {
+                    title: 'Exito',
+                    msg: 'Los cambios se han grabado correctamente. El pedido ha quedado en estado SOLICITADO'
+                });
+                clear();
+            },
+            error: function (response) {
+                $("#div-loader").hide();
+                    Lobibox.notify('error', {
+                        title: 'Error',
+                        msg: 'Ah ocurrido un error, intente nuevamente.'
+                    });
+            }
+            });
+
+    });
+
+        function redirect() {
+                var url = $("#RedirectTo").val();
+                location.href = url;
+        }
+
+        $("#btnCancelar").click(function () {
+            clear();
+        });
+
+        function clear() {
+            $(".clsQuantity").val('');
+        }
+
+
+
+    </script>
+
+
+}

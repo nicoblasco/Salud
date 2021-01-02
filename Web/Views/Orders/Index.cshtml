@@ -1,0 +1,494 @@
+﻿
+@model IEnumerable<TemplateNBL.ViewModel.OrderIndexViewModel>
+
+
+@if (TempData["message"] != null)
+{
+    if (TempData["message"].ToString().Contains("Lo sentimos"))
+    {
+        <div>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="alert alert-danger alert-dismissable">
+                        <button id="btndismissable" type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>@TempData["message"]
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="alert alert-success alert-dismissable">
+                        <button id="btndismissable" type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>@TempData["message"]
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+<!-- Progress Loader -->
+<div id="div-loader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8; display: none">
+    <p style="position: absolute; color: White; top: 35%; left: 45%;">
+        <img src="~/Images/loading.gif" alt="Loading..." />
+    </p>
+</div>
+
+@Html.Partial("_Filtros");
+@Html.Partial("_Table");
+
+
+
+@section scripts {
+    @Scripts.Render("~/Scripts/jquery.datetimepicker.full.min.js")
+<script>
+
+
+
+
+    $(document).ready(function () {
+
+        var Editar = '@ViewBag.Editar';
+        var Baja = '@ViewBag.Baja';
+        var Ver = '@ViewBag.Ver';
+        var Action;
+        habilitaBotones(false, null);
+        Action = "@Url.Action("GetOrderSearch")";
+
+
+        //Limpio los filtros
+        $('#Pedido').val('');
+        $('#ddlCentro').val('').change();
+        $('#fecha-inicio').val('');
+        $('#fecha-fin').val('');
+        $('#ddlEstado').val('').change();
+
+
+            var table = $('#dataTables-Index').DataTable({
+                "ajax":
+                {
+                    url: "_Action".replace("_Action",Action),
+                    type: "post",
+                    dataSrc: ""
+                },
+                "columns": [
+                    { "data": "id", defaultContent: '', className: 'px150' },
+                    { "data": "NroPedido", className: 'px200' },
+                    { "data": "Fecha", className: 'px200' },
+                    { "data": "Center", className: 'px200' },
+                    { "data": "Usuario", className: 'px200' },
+                    { "data": "Estado", className: 'px200' }
+                ],
+                rowId: 'Id',
+                responsive: true,
+                ordering: true,
+                searching: true,
+               // "order": [[1, "desc"]],
+                scrollX: true,
+                //"autoWidth": true,
+                "fnCreatedRow": function (nRow, aData, iDataIndex) {
+                    //Agrego las
+                    // Add a class to the cell in the first column
+                    $(nRow).children(':nth-child(1)').addClass('td-btn');
+
+                    //Agrego el boton
+                    if (Ver == 'True' && aData.Ver) {
+                        //Ver                        
+                        $('td:eq(0)', nRow).append("<span class='fa fa-eye span-btn' type='button' value='C' data-toggle='tooltip' data-placement='top' title='Ver' id='btn_Ver'/> ");
+                    }
+
+                    if (Editar == 'True' && aData.Modificar) {
+                        //Modificar
+                        $('td:eq(0)', nRow).append("<span class='fa fa-pencil span-btn' type='button' value='E' data-toggle='tooltip' data-placement='top' title='Modificar' id='btn_Editar' />");
+                    }
+
+                    if (Baja == 'True' && aData.Eliminar) {
+                        //Borrar
+
+                        $('td:eq(0)', nRow).append("<span data-toggle='modal' data-target='#eliminar-modal'><span class='fa fa-trash span-btn-dtl' type='button' value='D' data-toggle='tooltip' data-placement='top' title='Eliminar' id='btn_Eliminar' /></span>");
+                    }
+
+
+                }
+
+            });
+
+            var table = $('#dataTables-Index').DataTable();
+
+            $('#dataTables-Index tbody').on('click', 'tr', function () {
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                    habilitaBotones(false, null);
+                }
+                else {
+                    table.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                    var rows = table.rows('.selected').indexes();
+                    var estado = table.rows(rows).data()[0].Estado;
+                    habilitaBotones(true, estado);
+
+                }
+            });
+
+
+    });
+
+
+    $(document).on('click', '#btn_Nuevo', function () {
+        var baseUrl = "@Url.Action("Create", "Orders")";
+        window.location.href = baseUrl;
+    });
+
+
+    $(document).on('click', '#btn_Editar', function () {
+        var id = $(this).closest('tr').attr('id')
+        var baseUrl = "@Url.Action("Edit", "Orders", new { id="ID"})";
+        window.location.href = baseUrl.replace("ID",id);
+    });
+
+    $(document).on('click', '#btn_Ver', function () {
+        var id = $(this).closest('tr').attr('id')
+        var baseUrl = "@Url.Action("Details", "Orders", new { id="ID"})";
+        window.location.href = baseUrl.replace("ID",id);
+    });
+
+    $(document).on('click', '#btn_Eliminar', function () {
+        Delete(this);
+    });
+
+        var orderStatus = {
+            Solicitado: 1,
+            Aceptado: 2,
+            Rechazado: 3,
+            Entregado: 4
+        };
+
+        $(document).on('click', '#btnSolicitado', function () {
+            CambiarEstado("Solicitado", orderStatus.Solicitado);
+            habilitaBotones(false, null);
+    });
+        $(document).on('click', '#btnAceptado', function () {
+            CambiarEstado('Aceptado', orderStatus.Aceptado);
+            habilitaBotones(false, null);
+    });
+        $(document).on('click', '#btnRechazado', function () {
+            CambiarEstado('Rechazado', orderStatus.Rechazado);
+            habilitaBotones(false, null);
+    });
+        $(document).on('click', '#btnEntregado', function () {
+            CambiarEstado('Entregado', orderStatus.Entregado);
+            habilitaBotones(false, null);
+    });
+
+        function habilitaBotones(boHabilita, estado) {
+            if (boHabilita) {
+                switch (estado) {
+                    //Si es Admin
+                    case 'Solicitado':
+                        $('#btnSolicitado').attr("disabled", true);
+                        $('#btnAceptado').removeAttr("disabled");
+                        $('#btnRechazado').removeAttr("disabled");
+                        $('#btnEntregado').attr("disabled", true);
+                        break;
+                    case 'Aceptado':
+                        $('#btnSolicitado').removeAttr("disabled");
+                        $('#btnAceptado').attr("disabled", true);
+                        $('#btnRechazado').removeAttr("disabled");
+                        $('#btnEntregado').removeAttr("disabled");
+                        break;
+                    case 'Rechazado':
+                        $('#btnSolicitado').attr("disabled", true);
+                        $('#btnAceptado').removeAttr("disabled");
+                        $('#btnRechazado').attr("disabled", true);
+                        $('#btnEntregado').attr("disabled", true);
+                        break;
+                    case 'Entregado':
+                        $('#btnSolicitado').attr("disabled", true);
+                        $('#btnAceptado').removeAttr("disabled");
+                        $('#btnRechazado').attr("disabled", true);
+                        $('#btnEntregado').attr("disabled", true);
+                        break;
+                }
+
+            }
+            else {
+                $('#btnSolicitado').attr("disabled", true);
+                $('#btnAceptado').attr("disabled", true);
+                $('#btnEntregado').attr("disabled", true);
+                $('#btnRechazado').attr("disabled", true);
+            }
+        };
+
+        function CambiarEstado(text, status) {
+            var id = $('#dataTables-Index').find('tr.selected').attr("id");
+
+            Lobibox.prompt('text',{
+                title: "¿Esta seguro que desea cambiar el estado del Pedido a " + text + "?",
+                attrs: {
+                    placeholder: "Ingrese  una observación"
+                },
+                required: false,
+                callback: function ($this, type, ev) {
+                    if (type === 'ok') {
+                        var objOrder = new Object();
+                        objOrder.Id = id;
+                        objOrder.StatusId = status;
+                        objOrder.Observation = $this.$input[0].value;
+                        var data = JSON.stringify(objOrder);
+                    $.ajax({
+                    url: '@Url.Action("CambiarEstado", "Orders")',
+                    type: 'POST',
+                    data: data,
+                    contentType: 'application/json; charset=utf-8;',
+                    dataType: 'json',
+                    success: function (result) {
+
+                        $("#dataTables-Index").dataTable().fnReloadAjax();//Recargo la grilla
+                        $("#div-loader").hide();
+                        if (result.responseCode == -10) {
+                            Lobibox.notify('error', {
+                                title: 'Error',
+                                msg: 'El cambio de estado no es posible o no esta permitido.'
+                            });
+                        }
+                        else {
+                            Lobibox.notify('success', {
+                                title: 'Exito',
+                                msg: 'Los cambios se han grabado correctamente.'
+                            });
+                        }
+
+                    },
+                    error: function (response) {
+                        $("#div-loader").hide();
+                            Lobibox.notify('error', {
+                                title: 'Error',
+                                msg: 'Ah ocurrido un error, intente nuevamente.'});
+                        }
+                     });
+                    };
+}
+
+            });
+        }
+
+        function Delete(a) {
+            var id = $(a).closest('tr').attr('id')
+
+            Lobibox.confirm({
+                title: 'Atención',
+                msg: "¿Esta seguro que desea eliminar el Pedido?",
+                callback: function ($this, type, ev) {
+                    if (type === 'yes') {
+                    $.ajax({
+                    url: '@Url.Action("DeleteOrder", "Orders")',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        "Id": id
+                    }),
+                    contentType: 'application/json; charset=utf-8;',
+                    success: function (result) {
+                        $("#dataTables-Index").dataTable().fnReloadAjax();//Recargo la grilla
+                        $("#div-loader").hide();
+                        Lobibox.notify('success', {
+                            title: 'Exito',
+                            msg: 'Los cambios se han grabado correctamente.'
+                        });
+                    },
+                    error: function (response) {
+                        $("#div-loader").hide();
+                            Lobibox.notify('error', {
+                                title: 'Error',
+                                msg: 'Ah ocurrido un error, intente nuevamente.'});
+                        }
+                     });
+                    };
+}
+
+            });
+        }
+
+</script>
+
+    @*Table*@
+    <script>
+        $(document).ready(function () {
+            $(".select-buscador").select2();
+
+            //Datepicker
+            $.datetimepicker.setLocale('es');
+
+            $('.input-date').datetimepicker({
+                timepicker: false,
+                format: 'd/m/Y',
+                scrollInput: false,
+                date: new Date(Date.now())
+            });
+
+            $('#fecha-inicio').datetimepicker({
+                locale: 'es',
+                date: new Date(Date.now())
+            });
+            $('#fecha-fin').datetimepicker({
+                locale: 'es',
+                date: new Date(Date.now())
+            });
+
+            $('.tags-group').find('.alert').hide();
+
+        });
+
+        $(".filters").hide();
+
+        $("#btn-filter").click(function () {
+            $(this).toggleClass('btn-ghost-neutral btn-neutral').blur();
+            $('.filters').slideToggle(400);
+        });
+
+        $("#btn-apply").click(function () {
+            $('.filters').slideToggle(400, function () {
+                $('#btn-filter').toggleClass('btn-ghost-neutral btn-neutral');
+                completarTags();
+                buscar();
+            });
+        });
+
+        $('.tags-group').find(".close").click(function () {
+            var idTag = $(this).parents('.alert').attr('id');
+            $(this).parents('.alert').hide();
+            var child = $(this).parents('.alert');
+            child.children('.tagId').text('');
+            child.children('.tagValue').text('');
+
+            //Limpio el combo del tag que cerro
+            switch (idTag) {
+                case "tagPedido":
+                    $('#Pedido').val('');
+                    break;
+                case "tagTipo":
+                    $('#ddlCentro').val('').change();
+                    break;
+                case "tagFechaDesde":
+                    $('#fecha-inicio').val('');
+                    break;
+                case "tagFechaHasta":
+                    $('#fecha-fin').val('');
+                    break;
+                case "tagEstado":
+                    $('#ddlEstado').val('').change();
+                    break;
+
+                default:
+            }
+
+
+            buscar();
+        });
+
+        function buscar() {
+            $("#div-loader").show();
+            var NroPedido = $('#tagPedido').find('.tagId').text();
+            var FechaDesde = $('#tagFechaDesde').find('.tagId').text();
+            var FechaHasta = $('#tagFechaHasta').find('.tagId').text();
+            var Centro = $('#tagCentro').find('.tagId').text();
+            var Estado = $('#tagEstado').find('.tagId').text();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("SearchOrder", "Orders")",
+                        data: JSON.stringify({
+                            "NroPedido": NroPedido,
+                            "FechaDesde": FechaDesde,
+                            "FechaHasta": FechaHasta,
+                            "Centro": Centro,
+                            "Estado": Estado
+                        }),
+                        dataType: "json",
+                        contentType: 'application/json; charset=utf-8;',
+                        success: function (dataNew) {
+                            $("#div-loader").hide();
+                            if (dataNew.length > 0) {
+                                var datatable = $('#dataTables-Index').DataTable();
+                                datatable.rows().remove().draw();
+                                datatable.rows.add(dataNew); // Add new data
+                                datatable.columns.adjust().draw(); // Redraw the DataTable
+                            }
+                            else {
+                                var datatable = $('#dataTables-Index').DataTable();
+                                datatable.rows().remove().draw();
+                                datatable.rows.add(dataNew); // Add new data
+                                datatable.columns.adjust().draw(); // Redraw the DataTable
+                            }
+                        }
+                    });
+            }
+
+            function completarTags() {
+                //Tomo el valor de cada uno de los combos
+                if ($('#Pedido').val() != null && $('#Pedido').val() != '') {
+                    $('#tagPedido').find('.tagId').text($('#Pedido').val());
+                    $('#tagPedido').find('.tagValue').text($('#Pedido').val());
+                    $('#tagPedido').css("display", "inline-block");
+                }
+                else {
+                    $('#tagPedido').find('.tagId').text('');
+                    $('#tagPedido').find('.tagValue').text('');
+                    $('#tagPedido').hide();
+                }
+
+                if ($('#ddlCentro').val() != null && $('#ddlCentro').val() != '') {
+                    $('#tagCentro').find('.tagId').text($('#ddlCentro').val());
+                    $('#tagCentro').find('.tagValue').text($("#ddlCentro option:selected").text());
+                    $('#tagCentro').css("display", "inline-block");
+                }
+                else {
+                    $('#tagCentro').find('.tagId').text('');
+                    $('#tagCentro').find('.tagValue').text('');
+                    $('#tagCentro').hide();
+                }
+
+                if ($('#fecha-inicio').val() != null && $('#fecha-inicio').val() != '') {
+                    $('#tagFechaDesde').find('.tagId').text($('#fecha-inicio').val());
+                    $('#tagFechaDesde').find('.tagValue').text($('#fecha-inicio').val());
+                    $('#tagFechaDesde').css("display", "inline-block");
+                }
+                else {
+                    $('#tagFechaDesde').find('.tagId').text('');
+                    $('#tagFechaDesde').find('.tagValue').text('');
+                    $('#tagFechaDesde').hide();
+                }
+
+                if ($('#fecha-fin').val() != null && $('#fecha-fin').val() != '') {
+                    $('#tagFechaHasta').find('.tagId').text($('#fecha-fin').val());
+                    $('#tagFechaHasta').find('.tagValue').text($('#fecha-fin').val());
+                    $('#tagFechaHasta').css("display", "inline-block");
+                }
+                else {
+                    $('#tagFechaHasta').find('.tagId').text('');
+                    $('#tagFechaHasta').find('.tagValue').text('');
+                    $('#tagFechaHasta').hide();
+                }
+
+
+                if ($('#ddlEstado').val() != null && $('#ddlEstado').val() != '') {
+                    $('#tagEstado').find('.tagId').text($('#ddlEstado').val());
+                    $('#tagEstado').find('.tagValue').text($("#ddlEstado option:selected").text());
+                    $('#tagEstado').css("display", "inline-block");
+                }
+                else {
+                    $('#tagEstado').find('.tagId').text('');
+                    $('#tagEstado').find('.tagValue').text('');
+                    $('#tagEstado').hide();
+                }
+
+            }
+
+
+
+    </script>
+}
+

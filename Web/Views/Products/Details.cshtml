@@ -1,0 +1,82 @@
+﻿@model TemplateNBL.Models.Product
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Details</title>
+</head>
+<body>
+    <div>
+        <h4>Product</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.ProductType.Descripcion)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.ProductType.Descripcion)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.SupplieMedical.Descripcion)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.SupplieMedical.Descripcion)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.Descripcion)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.Stock)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.Stock)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.StockMin)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.StockMin)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.Presentation)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.Presentation)
+            </dd>
+    
+            <dt>
+                @Html.DisplayNameFor(model => model.Enable)
+            </dt>
+    
+            <dd>
+                @Html.DisplayFor(model => model.Enable)
+            </dd>
+    
+        </dl>
+    </div>
+    <p>
+        @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+        @Html.ActionLink("Back to List", "Index")
+    </p>
+</body>
+</html>

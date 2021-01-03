@@ -176,6 +176,9 @@ namespace TemplateNBL.Controllers
 
                 db.SaveChanges();
 
+
+                AuditHelper.Auditar("Modificacion", order.CenterId.ToString(), className, ModuleDescription, WindowDescription);
+
                 responseObject = new
                 {
                     responseCode = 0

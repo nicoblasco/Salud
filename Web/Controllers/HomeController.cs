@@ -9,7 +9,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 
-namespace Transporte.Controllers
+namespace TemplateNBL.Controllers
 {
     [AutenticadoAttribute]
     public class HomeController : Controller

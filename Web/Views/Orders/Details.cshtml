@@ -1,4 +1,4 @@
-﻿@model TemplateNBL.ViewModel.OrderCreateViewModel
+﻿@model TemplateNBL.ViewModel.OrderEditViewModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -40,7 +40,7 @@
                                     <td>@item.Stock</td>
 
                                     <td>
-                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" value="@item.Quantity" disabled="disabled" /> 
+                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" value="@item.Quantity" disabled="disabled" />
                                     </td>
                                 </tr>
                             }
@@ -54,6 +54,8 @@
         </div>
 
     </div>
+
+    @Html.Partial("_TableTracking");
 
     <div id="div-loader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8; display: none">
         <p style="position: absolute; color: White; top: 35%; left: 45%;">
@@ -70,6 +72,28 @@
         $("#btnCancelar").click(function () {
             clear();
         });
+        var Action;
+        var orderID = @Html.Raw(Json.Encode(Model.Id));
+        Action = "@Url.Action("GetTrackings", "Orders",new { Id = "_Switch" })".replace("_Switch", orderID);
+        
+
+        $('#dataTables-Index').DataTable({
+              "ajax":
+                {
+                    url: "_Action".replace("_Action",Action),
+                    type: "post",
+                    dataSrc: ""
+                },
+            "columns": [
+                { "data": "Id" },
+                { "data": "Fecha" },
+                { "data": "EstadoDesde" },
+                { "data": "EstadoHasta" },
+               { "data": "Usuario" },
+                { "data": "Observacion" }
+           ],
+           responsive: true
+       });
 
     </script>
 

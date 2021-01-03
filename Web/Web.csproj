@@ -237,6 +237,7 @@
     <Compile Include="ViewModel\OrderEditViewModel.cs" />
     <Compile Include="ViewModel\OrderIndexViewModel.cs" />
     <Compile Include="ViewModel\OrderProductViewModel.cs" />
+    <Compile Include="ViewModel\OrderTrackingViewModel.cs" />
     <Compile Include="ViewModel\OrderViewModel.cs" />
     <Compile Include="ViewModel\PermissionViewModel.cs" />
     <Compile Include="ViewModel\ProductStockViewModel.cs" />
@@ -653,6 +654,7 @@
     <Content Include="Views\CenterProducts\Details.cshtml" />
     <Content Include="Views\CenterProducts\Index.cshtml" />
     <Content Include="Views\CenterProducts\_Table.cshtml" />
+    <Content Include="Views\Orders\_TableTracking.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\upload\" />

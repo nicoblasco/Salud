@@ -9,7 +9,7 @@ using System.Web.Mvc;
 using TemplateNBL.Models;
 using TemplateNBL.Tags;
 
-namespace Transporte.Controllers
+namespace TemplateNBL.Controllers
 {
     [AutenticadoAttribute]
     public class ModulesController : Controller

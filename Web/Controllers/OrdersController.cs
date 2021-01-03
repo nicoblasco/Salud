@@ -290,6 +290,45 @@ namespace TemplateNBL.Controllers
             return orders.ToList();
         }
 
+
+
+        [HttpPost]
+        public JsonResult GetTrackings(int Id)
+        {
+            try
+            {
+                Order order = db.Orders.Where(x => x.Id == Id).Include(x => x.OrderTrackings).FirstOrDefault();
+                List<OrderTrackingViewModel> list = new List<OrderTrackingViewModel>();
+                List<Status> statuses = db.Status.ToList();
+
+
+                foreach (var item in order.OrderTrackings)
+                {
+                    OrderTrackingViewModel orderTracking = new OrderTrackingViewModel
+                    {
+                        Id = item.Id,
+                        EstadoDesde  = statuses.Where(x=>x.Id==item?.SinceStatusId).FirstOrDefault()?.Descripcion,
+                        EstadoHasta = statuses.Where(x => x.Id == item.ToStatusId).FirstOrDefault()?.Descripcion,
+                        Usuario = item.Usuario.Nombreusuario,
+                        Observacion = item.Observation,
+                        Fecha = item.Fecha.ToString("dd/MM/yyyy")
+
+                    };
+
+
+                    list.Add(orderTracking);
+                }
+
+
+                return Json(list.OrderByDescending(x => x.Id), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+        }
+
         // GET: Orders/Create
         public ActionResult Create()
         {
@@ -322,12 +361,14 @@ namespace TemplateNBL.Controllers
        
         public ActionResult Details(int Id)
         {
-            OrderCreateViewModel ordervm = new OrderCreateViewModel();
+            OrderEditViewModel ordervm = new OrderEditViewModel();
             Usuario usuario = db.Usuarios.Find(SessionHelper.GetUser());
             Order order = db.Orders.Find(Id);
             ViewBag.Title = "Pedido del Centro " + order.Center.Descripcion;
             ViewBag.SubTitle = "Estado: " + order.Status.Descripcion;
-            ordervm.CenterId = usuario.CenterId.Value;
+            ViewBag.isAdmin = usuario.Rol.IsAdmin;
+            ordervm.Id = order.Id;
+            ordervm.CenterId = order.CenterId;
             ordervm.OrderProductViewModels = new List<OrderProductViewModel>();
             var products = db.Products.Where(x => x.Enable).ToList();
             var centerProducts = db.CenterProducts.Where(x => x.CenterId == ordervm.CenterId).ToList();            
@@ -438,9 +479,10 @@ namespace TemplateNBL.Controllers
                 var maxNumeroPedido = db.Orders.Max(x => x.NroPedido);
                 order.NroPedido = maxNumeroPedido + 1;
                 db.Orders.Add(order);
+
                 db.SaveChanges();
 
-                
+                AuditHelper.Auditar("Alta", order.Id.ToString(), className, ModuleDescription, WindowDescription);
 
                 responseObject = new
                 {
@@ -541,7 +583,7 @@ namespace TemplateNBL.Controllers
                 db.SaveChanges();
 
 
-
+                AuditHelper.Auditar("Modificacion", order.Id.ToString(), className, ModuleDescription, WindowDescription);
                 responseObject = new
                 {
                     responseCode = 0
@@ -580,6 +622,8 @@ namespace TemplateNBL.Controllers
                 db.OrderTrackings.RemoveRange(order.OrderTrackings);
                 db.Orders.Remove(order);
                 db.SaveChanges();
+
+                AuditHelper.Auditar("Baja", Id.ToString(), className, ModuleDescription, WindowDescription);
 
                 responseObject = new
                 {
@@ -659,6 +703,8 @@ namespace TemplateNBL.Controllers
                 db.OrderTrackings.Add(tracking);
 
                 db.SaveChanges();
+
+                AuditHelper.Auditar("Modificacion", order.Id.ToString(), className, ModuleDescription, WindowDescription);
 
                 responseObject = new
                 {

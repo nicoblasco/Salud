@@ -11,7 +11,7 @@ using TemplateNBL.Tags;
 using TemplateNBL.ViewModel;
 using TemplateNBL.Models;
 
-namespace Transporte.Controllers
+namespace TemplateNBL.Controllers
 {
     [AutenticadoAttribute]
     public class PermissionsController : Controller

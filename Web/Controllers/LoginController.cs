@@ -8,7 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using static TemplateNBL.Tags.AutenticadoAttribute;
 
-namespace Transporte.Controllers
+namespace TemplateNBL.Controllers
 {
     [NoLoginAttribute]
     public class LoginController : Controller

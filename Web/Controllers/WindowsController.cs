@@ -11,7 +11,7 @@ using TemplateNBL.Models;
 using TemplateNBL.Tags;
 using TemplateNBL.ViewModel;
 
-namespace Transporte.Controllers
+namespace TemplateNBL.Controllers
 {
     [AutenticadoAttribute]
     public class WindowsController : Controller

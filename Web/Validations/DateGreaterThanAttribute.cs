@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 
 
-namespace Transporte.Validations
+namespace TemplateNBL.Validations
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public class DateGreaterThanAttribute : ValidationAttribute, IClientValidatable

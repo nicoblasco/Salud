@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace TemplateNBL.ViewModel
+﻿namespace TemplateNBL.ViewModel
 {
     public class OrderProductViewModel
     {
@@ -12,7 +6,8 @@ namespace TemplateNBL.ViewModel
         public string Product { get; set; }
         public string ProductType { get; set; }
         public int? Stock { get; set; }
-        public int Quantity { get; set; }
+        public int Quantity { get; set; }//Pedidos
+        public int QuantityDelivered { get; set; }//Entregados 
         public bool? OutStock { get; set; }
 
     }

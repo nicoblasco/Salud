@@ -24,6 +24,7 @@ namespace TemplateNBL.Models
 
         public virtual ICollection<OrderProduct> OrderProducts { get; set; }
         public virtual ICollection<OrderTracking> OrderTrackings { get; set; }
+        
 
     }
 }

@@ -1,0 +1,229 @@
+﻿
+@{
+    ViewBag.Title = "ReportInsumos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Progress Loader -->
+<div id="div-loader" style="margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 30001; opacity: 0.8; display: none">
+    <p style="position: absolute; color: White; top: 35%; left: 45%;">
+        <img src="~/Images/loading.gif" alt="Loading..." />
+    </p>
+</div>
+
+@Html.Partial("_FiltroReportes");
+
+@section scripts {
+    @Scripts.Render("~/Scripts/jquery.datetimepicker.full.min.js")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js"></script>
+    @Scripts.Render("~/Scripts/shared.js")
+    <script>
+
+
+
+
+    $(document).ready(function () {
+
+        //Limpio los filtros
+        $('#ddlCentro').val('').change();
+        $('#fecha-inicio').val('');
+        $('#fecha-fin').val('');
+        $('#ddlMedicamento').val('').change();
+
+
+
+    });
+
+
+    $(document).on('click', '#btn-apply', function ()
+    {
+        completarTags();
+        buscar();
+
+
+    });
+
+        function Imprimir(data) {
+            const title = 'Reporte Insumos Enviados: ';
+            var centro = $("#ddlCentro option:selected").text();
+            var fechaDesde =$('#fecha-inicio').val();
+            var fechaHasta =$('#fecha-fin').val();
+            var medicamento = $("#ddlMedicamento option:selected").text();
+            var name = title;
+            var heading = [
+                /*"Fecha Desde: " + fechaDesde,
+                "Fecha Hasta: " + fechaHasta,
+                "Centro: " + centro,
+                "Insumo: " + medicamento,*/
+                "Total Solicitados: "+ data.TotalSolicitados,
+                "Total Entregados: " + data.TotalEntregados
+            ];
+            const columns = [
+                { title: "Nro Pedido", dataKey: "NroPedido" },
+                { title: "Fecha", dataKey: "Date" },
+                { title: "Centro", dataKey: "Center" },
+                { title: "Insumo", dataKey: "Product" },
+                { title: "Total Solicitado", dataKey: "Quantity" },
+                { title: "Total Entregado", dataKey: "QuantityDelivered" }
+            ];
+
+            generatePdf(name, heading, title, columns, data.Detalle);
+
+        };
+
+    </script>
+
+    @*Table*@
+    <script>
+        $(document).ready(function () {
+            $(".select-buscador").select2();
+
+            //Datepicker
+            $.datetimepicker.setLocale('es');
+
+            $('.input-date').datetimepicker({
+                timepicker: false,
+                format: 'd/m/Y',
+                scrollInput: false,
+                date: new Date(Date.now())
+            });
+
+            $('#fecha-inicio').datetimepicker({
+                locale: 'es',
+                date: new Date(Date.now())
+            });
+            $('#fecha-fin').datetimepicker({
+                locale: 'es',
+                date: new Date(Date.now())
+            });
+
+            $('.tags-group').find('.alert').hide();
+
+        });
+
+
+
+        $('.tags-group').find(".close").click(function () {
+            var idTag = $(this).parents('.alert').attr('id');
+            $(this).parents('.alert').hide();
+            var child = $(this).parents('.alert');
+            child.children('.tagId').text('');
+            child.children('.tagValue').text('');
+
+            //Limpio el combo del tag que cerro
+            switch (idTag) {
+                case "tagTipo":
+                    $('#ddlCentro').val('').change();
+                    break;
+                case "tagFechaDesde":
+                    $('#fecha-inicio').val('');
+                    break;
+                case "tagFechaHasta":
+                    $('#fecha-fin').val('');
+                    break;
+                case "tagMedicamento":
+                    $('#ddlMedicamento').val('').change();
+                    break;
+
+                default:
+            }
+
+
+           // buscar();
+        });
+
+        function buscar() {
+            $("#div-loader").show();
+            var FechaDesde = $('#tagFechaDesde').find('.tagId').text();
+            var FechaHasta = $('#tagFechaHasta').find('.tagId').text();
+            var Centro = $('#tagCentro').find('.tagId').text();
+            var Medicamento = $('#tagMedicamento').find('.tagId').text();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("SearchReporteInsumo", "Orders")",
+                        data: JSON.stringify({
+                            "FechaDesde": FechaDesde,
+                            "FechaHasta": FechaHasta,
+                            "Centro": Centro,
+                            "Medicamento": Medicamento
+                        }),
+                        dataType: "json",
+                        contentType: 'application/json; charset=utf-8;',
+                        success: function (dataNew) {
+                            $("#div-loader").hide();
+                            if (dataNew!=null) {
+                                Imprimir(dataNew)
+                            }
+                            else {
+                                Lobibox.notify('warning', {
+                                    title: 'Atención',
+                                    msg: 'No se han encontrado registros'
+                                });
+                            }
+                        },
+                        error: function (response) {
+                            $("#div-loader").hide();
+                            Lobibox.notify('error', {
+                                title: 'Error',
+                                msg: 'Ah ocurrido un error, intente nuevamente.'
+                            });
+                        }
+                    });
+            }
+
+            function completarTags() {
+                //Tomo el valor de cada uno de los combos
+
+                if ($('#ddlCentro').val() != null && $('#ddlCentro').val() != '') {
+                    $('#tagCentro').find('.tagId').text($('#ddlCentro').val());
+                    $('#tagCentro').find('.tagValue').text($("#ddlCentro option:selected").text());
+                    $('#tagCentro').css("display", "inline-block");
+                }
+                else {
+                    $('#tagCentro').find('.tagId').text('');
+                    $('#tagCentro').find('.tagValue').text('');
+                    $('#tagCentro').hide();
+                }
+
+                if ($('#fecha-inicio').val() != null && $('#fecha-inicio').val() != '') {
+                    $('#tagFechaDesde').find('.tagId').text($('#fecha-inicio').val());
+                    $('#tagFechaDesde').find('.tagValue').text($('#fecha-inicio').val());
+                    $('#tagFechaDesde').css("display", "inline-block");
+                }
+                else {
+                    $('#tagFechaDesde').find('.tagId').text('');
+                    $('#tagFechaDesde').find('.tagValue').text('');
+                    $('#tagFechaDesde').hide();
+                }
+
+                if ($('#fecha-fin').val() != null && $('#fecha-fin').val() != '') {
+                    $('#tagFechaHasta').find('.tagId').text($('#fecha-fin').val());
+                    $('#tagFechaHasta').find('.tagValue').text($('#fecha-fin').val());
+                    $('#tagFechaHasta').css("display", "inline-block");
+                }
+                else {
+                    $('#tagFechaHasta').find('.tagId').text('');
+                    $('#tagFechaHasta').find('.tagValue').text('');
+                    $('#tagFechaHasta').hide();
+                }
+
+
+                if ($('#ddlMedicamento').val() != null && $('#ddlMedicamento').val() != '') {
+                    $('#tagMedicamento').find('.tagId').text($('#ddlMedicamento').val());
+                    $('#tagMedicamento').find('.tagValue').text($("#ddlMedicamento option:selected").text());
+                    $('#tagMedicamento').css("display", "inline-block");
+                }
+                else {
+                    $('#tagMedicamento').find('.tagId').text('');
+                    $('#tagMedicamento').find('.tagValue').text('');
+                    $('#tagMedicamento').hide();
+                }
+
+            }
+
+
+
+    </script>
+}

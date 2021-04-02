@@ -78,8 +78,12 @@ namespace TemplateNBL.Controllers
             List<Usuario> list = new List<Usuario>();
             try
             {
-                list = db.Usuarios.ToList();
-                var json = JsonConvert.SerializeObject(list);
+                list = db.Usuarios.Where(x=>x.Enable).Include(x=>x.Center).ToList();
+                var json = JsonConvert.SerializeObject(list, Formatting.Indented,
+                new JsonSerializerSettings
+                {
+                    PreserveReferencesHandling = PreserveReferencesHandling.Objects
+                });
                 List<UsuarioViewModel> listUsuariovm = new List<UsuarioViewModel>();
 
                 foreach (var item in list)
@@ -100,7 +104,7 @@ namespace TemplateNBL.Controllers
 
                 return Json(listUsuariovm, JsonRequestBehavior.AllowGet);
             }
-            catch (Exception)
+            catch (Exception e)
             {
 
                 throw;

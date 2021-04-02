@@ -25,6 +25,10 @@
                                 <th scope="col">Tipo</th>
                                 <th scope="col">Stock</th>
                                 <th scope="col">Pedido</th>
+                                @if (ViewBag.isAdmin)
+                                {
+                                    <th scope="col">Entregado</th>
+                                }
                             </tr>
                         </thead>
                         <tbody>
@@ -38,10 +42,23 @@
                                     <td>@item.ProductType</td>
                                     <td>@item.Stock</td>
 
-                                    <td>
-                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" value="@item.Quantity" min="0" @{ if (item.OutStock.Value) { @: disabled="disabled"
-                                               } }>
-                                    </td>
+                                    @if (!ViewBag.isAdmin)
+                                    {
+                                        <td>
+                                            <input type="number" id="quantity" class="clsQuantity" name="quantity" value="@item.Quantity" min="0" @{ if (item.OutStock.Value) { @: disabled="disabled"
+                                                   } }>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td>@item.Quantity</td>
+                                        <td>
+                                            <input type="number" id="quantityDelivered" class="clsQuantity" name="quantityDelivered" value="@item.QuantityDelivered" min="0" @{ if (item.OutStock.Value) { @: disabled="disabled"
+                                                   } }>
+                                        </td>
+
+                                    }
+
                                 </tr>
                             }
                         </tbody>
@@ -67,66 +84,114 @@
 @section scripts {
 
     <script>
-    $(document).on('click', '#btnGuardar', function () {
-        $("#div-loader").show();
-        var objOrder = new Object();
-        var arrObj = [];
-        $("tbody").find("tr").each(function (product, index) {
-            var objProducts = new Object();
-            var quantity = $(index).find('#quantity').val();
-            var id = $(index).find('#row').text();
-
-            if (quantity > 0) {
-                objProducts.ProductId = id;
-                objProducts.Quantity = quantity;
-                arrObj.push(objProducts);
-            }
-            id = ''
-            quantity = '';
-        })
-        objOrder.Id = @Html.Raw(Json.Encode(Model.Id));
-        objOrder.CenterId = @Html.Raw(Json.Encode(Model.CenterId));
-        objOrder.OrderProductViewModels = arrObj;
-
-        if (arrObj.length == 0) {
-            $("#div-loader").hide();
-            Lobibox.notify('warning', {
-                title: 'Atención',
-                msg: 'Debe cargar al menos un producto'
-            });
-            return;
-        }
-
-        var data = JSON.stringify(objOrder);
-
-        $.ajax({
-            type: 'POST',
-            url: '@Url.Action("EditOrder")',
-            data: data,
-            contentType: 'application/json; charset=utf-8;',
-            dataType: 'json',
-            success: function (result) {
-                $("#div-loader").hide();
-                Lobibox.notify('success', {
-                    title: 'Exito',
-                    msg: 'Los cambios se han grabado correctamente. El pedido ha quedado en estado SOLICITADO'
+        var isAdmin = '@ViewBag.isAdmin'
+        var pasaAEntregado ='@ViewBag.PasaAEntregado'
+        $(document).on('click', '#btnGuardar', function () {
+            if (isAdmin == 'True' && pasaAEntregado=='True') {
+                Lobibox.confirm({
+                    title: 'Atención',
+                    msg: "Se grabarán los cambios. ¿Ademas desea pasar al estado ENTREGADO?",
+                    callback: function ($this, type, ev) {
+                        if (type === 'yes') {
+                            editar(true);
+                        }
+                        else {
+                            editar(false);
+                        }
+                    }
                 });
-
-                setTimeout(
-                    function () {
-                        redirect();
-                    }, 5000);                
-            },
-            error: function (response) {
-                $("#div-loader").hide();
-                    Lobibox.notify('error', {
-                        title: 'Error',
-                        msg: 'Ah ocurrido un error, intente nuevamente.'
-                    });
             }
-            });
+            else {
+                editar(false);
+            }
+
+
 
     });
+
+        function editar(cambiaEstado) {
+            $("#div-loader").show();
+            var objOrder = new Object();
+            var arrObj = [];
+            $("tbody").find("tr").each(function (product, index) {
+                var objProducts = new Object();
+                var quantity = $(index).find('#quantity').val();
+                var quantityDelivered = $(index).find('#quantityDelivered').val();
+                var id = $(index).find('#row').text();
+
+                if (isAdmin == 'True') {
+                    if (quantityDelivered > 0) {
+                        objProducts.ProductId = id;
+                        objProducts.QuantityDelivered = quantityDelivered;
+                        arrObj.push(objProducts);
+                    }
+                }
+                else {
+                    if (quantity > 0) {
+                        objProducts.ProductId = id;
+                        objProducts.Quantity = quantity;
+                        arrObj.push(objProducts);
+                    }
+                }
+
+                id = ''
+                quantity = '';
+                quantityDelivered = '';
+            })
+            objOrder.Id = @Html.Raw(Json.Encode(Model.Id));
+            objOrder.CenterId = @Html.Raw(Json.Encode(Model.CenterId));
+            objOrder.ChangeStatus = cambiaEstado;
+            objOrder.OrderProductViewModels = arrObj;
+
+            if (arrObj.length == 0) {
+                $("#div-loader").hide();
+                Lobibox.notify('warning', {
+                    title: 'Atención',
+                    msg: 'Debe cargar al menos un producto'
+                });
+                return;
+            }
+
+            var data = JSON.stringify(objOrder);
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditOrder")',
+                data: data,
+                contentType: 'application/json; charset=utf-8;',
+                dataType: 'json',
+                success: function (result) {
+                    $("#div-loader").hide();
+                    if (result.responseCode != -10) {
+                        Lobibox.notify('success', {
+                            title: 'Exito',
+                            msg: 'Los cambios se han grabado correctamente'
+                        });
+
+                        setTimeout(
+                            function () {
+                                redirect();
+                            }, 5000);
+                    }
+                    else {
+
+                        Lobibox.notify('error', {
+                            title: 'Error',
+                            msg: 'Ah ocurrido un error, intente nuevamente.'
+                        });
+                    }
+
+                },
+                error: function (response) {
+                    $("#div-loader").hide();
+                        Lobibox.notify('error', {
+                            title: 'Error',
+                            msg: 'Ah ocurrido un error, intente nuevamente.'
+                        });
+                }
+            });
+        }
+
 
         function redirect() {
                 var url = $("#RedirectTo").val();

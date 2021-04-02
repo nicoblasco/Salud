@@ -26,23 +26,38 @@
                                 <th scope="col">Tipo</th>
                                 <th scope="col">Stock</th>
                                 <th scope="col">Pedido</th>
+                                @*@if (ViewBag.isAdmin)
+                                {*@
+                                    <th scope="col">Entregado</th>
+                                @*}*@
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model.OrderProductViewModels.OrderBy(x => x.Product))
                             {
-                                <tr>
-                                    <th scope="row" id="row">@item.ProductId</th>
-                                    <td>
-                                        @item.Product
-                                    </td>
-                                    <td>@item.ProductType</td>
-                                    <td>@item.Stock</td>
+                            <tr>
+                                <th scope="row" id="row">@item.ProductId</th>
+                                <td>
+                                    @item.Product
+                                </td>
+                                <td>@item.ProductType</td>
+                                <td>@item.Stock</td>
 
+                                @*@if (!ViewBag.isAdmin)
+                                {
                                     <td>
-                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" value="@item.Quantity" disabled="disabled" />
+                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" value="@item.Quantity" min="0"  disabled="disabled">
                                     </td>
-                                </tr>
+                                }
+                                else
+                                {*@
+                                    <td>@item.Quantity</td>
+                                    <td>
+                                        <input type="number" id="quantityDeliverd" class="clsQuantity" name="quantityDeliverd" value="@item.QuantityDelivered" disabled="disabled">
+                                    </td>
+
+                                @*}*@
+                            </tr>
                             }
                         </tbody>
                     </table>

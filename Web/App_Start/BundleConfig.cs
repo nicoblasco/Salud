@@ -55,7 +55,9 @@ namespace TemplateNBL
                       "~/Scripts/fnReloadAjax.js",
                       "~/Scripts/jquery.autocomplete.js",
                       //"~/Scripts/jquery.datetimepicker.full.min.js",                      
-                      "~/Scripts/select2.js"
+                      "~/Scripts/select2.js",
+                      "~/Scripts/jspdf.es.min.js",
+                      "~/Scripts/jspdf.plugin.autotable.js"
                       ));
 
 

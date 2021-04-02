@@ -9,5 +9,7 @@ namespace TemplateNBL.ViewModel
     {
         public int CenterId { get; set; }
         public List<OrderProductViewModel> OrderProductViewModels { get; set; }
+        public bool TieneStockSinCargar { get; set; }
+
     }
 }

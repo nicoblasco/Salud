@@ -45,7 +45,10 @@
 
 @section scripts {
     @Scripts.Render("~/Scripts/jquery.datetimepicker.full.min.js")
-<script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js"></script>
+    @Scripts.Render("~/Scripts/shared.js")
+    <script>
 
 
 
@@ -97,7 +100,7 @@
 
                     //Agrego el boton
                     if (Ver == 'True' && aData.Ver) {
-                        //Ver                        
+                        //Ver
                         $('td:eq(0)', nRow).append("<span class='fa fa-eye span-btn' type='button' value='C' data-toggle='tooltip' data-placement='top' title='Ver' id='btn_Ver'/> ");
                     }
 
@@ -110,6 +113,11 @@
                         //Borrar
 
                         $('td:eq(0)', nRow).append("<span data-toggle='modal' data-target='#eliminar-modal'><span class='fa fa-trash span-btn-dtl' type='button' value='D' data-toggle='tooltip' data-placement='top' title='Eliminar' id='btn_Eliminar' /></span>");
+                    }
+
+                    if (Ver == 'True' && aData.Ver) {
+                        //Imprimir
+                        $('td:eq(0)', nRow).append("<span class='fa fa-print span-btn' type='button' value='C' data-toggle='tooltip' data-placement='top' title='Imprimir' id='btn_Imprimir'/> ");
                     }
 
 
@@ -159,6 +167,64 @@
     $(document).on('click', '#btn_Eliminar', function () {
         Delete(this);
     });
+
+    $(document).on('click', '#btn_Imprimir', function ()
+    {
+        var id = $(this).closest('tr').attr('id');
+         buscarPedido(id);
+
+
+    });
+
+        function Imprimir(data) {
+            const title = 'Pedido Nro: ' + data.NroPedido;
+            var center = data.Center;
+            var name = title + " - " + center;
+            var heading = [
+                "Fecha Impresion: " + new Date().toLocaleString(),
+                "Fecha Pedido: " + data.Date,
+                "Nro Pedido: " + data.NroPedido,
+                "Centro: " + data.Center
+            ];
+            const columns = [
+                { title: "#", dataKey: "ProductId" },
+                { title: "Insumo", dataKey: "Product" },
+                { title: "Tipo", dataKey: "ProductType" },
+                { title: "Stock", dataKey: "Stock" },
+                { title: "Pedido", dataKey: "Quantity" },
+                { title: "Entregado", dataKey: "QuantityDelivered" }
+            ];
+
+            generatePdf(name, heading, title, columns, data.OrderProductViewModels);
+
+        };
+
+        function buscarPedido(id) {
+            var data;
+             $.ajax({
+                url: '@Url.Action("Get", "Orders")',
+                type: 'POST',
+                data: JSON.stringify({
+                    "Id": id
+                }),
+                contentType: 'application/json; charset=utf-8;',
+                success: function (result) {
+                    $("#div-loader").hide();
+                    if (result != null) {
+                        Imprimir(result);
+                    }
+                },
+                error: function (response) {
+                    $("#div-loader").hide();
+                        Lobibox.notify('error', {
+                            title: 'Error',
+                            msg: 'Ah ocurrido un error, intente nuevamente.'});
+                    }
+             });
+
+            return data;
+
+        }
 
         var orderStatus = {
             Solicitado: 1,
@@ -312,7 +378,7 @@
             });
         }
 
-</script>
+    </script>
 
     @*Table*@
     <script>

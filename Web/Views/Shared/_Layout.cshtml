@@ -111,6 +111,18 @@
                             </ul>
                         </li>
 
+                        <li>
+                            <a style="color: whitesmoke" href="#"><i class="fa fa-paste fa-fw"></i> Reportes<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                @if (PermissionViewModel.TienePermisoAcesso(WindowHelper.GetWindowId("Reportes", "Pedidos")))
+                                {
+                                    <li>
+                                        <a style="color: whitesmoke" href="@Url.Action("ReportInsumos", "Orders")">Insumos Enviados</a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+
 
                         <li>
                             <a style="color: whitesmoke" href="#"><i class="fa fa-hdd-o fa-fw"></i> ABM Maestros<span class="fa arrow"></span></a>

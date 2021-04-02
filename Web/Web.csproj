@@ -237,6 +237,8 @@
     <Compile Include="ViewModel\OrderEditViewModel.cs" />
     <Compile Include="ViewModel\OrderIndexViewModel.cs" />
     <Compile Include="ViewModel\OrderProductViewModel.cs" />
+    <Compile Include="ViewModel\OrderReporteInsumoDetalleViewModel.cs" />
+    <Compile Include="ViewModel\OrderReporteInsumoViewModel.cs" />
     <Compile Include="ViewModel\OrderTrackingViewModel.cs" />
     <Compile Include="ViewModel\OrderViewModel.cs" />
     <Compile Include="ViewModel\PermissionViewModel.cs" />
@@ -497,6 +499,8 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\jspdf.plugin.autotable.js" />
+    <Content Include="Scripts\spdf.es.min.js" />
     <Content Include="Scripts\jszip.min.js" />
     <Content Include="Scripts\lobibox.js" />
     <Content Include="Scripts\messageboxes.js" />
@@ -531,6 +535,7 @@
     <Content Include="Scripts\select2-cascade.js" />
     <Content Include="Scripts\select2.js" />
     <Content Include="Scripts\select2.min.js" />
+    <Content Include="Scripts\shared.js" />
     <Content Include="Scripts\shim.js" />
     <Content Include="Scripts\sol.js" />
     <Content Include="Scripts\summernote\lang\summernote-ar-AR.js" />
@@ -655,6 +660,8 @@
     <Content Include="Views\CenterProducts\Index.cshtml" />
     <Content Include="Views\CenterProducts\_Table.cshtml" />
     <Content Include="Views\Orders\_TableTracking.cshtml" />
+    <Content Include="Views\Orders\ReportInsumos.cshtml" />
+    <Content Include="Views\Orders\_FiltroReportes.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\upload\" />

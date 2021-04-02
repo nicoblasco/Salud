@@ -13,6 +13,13 @@
             <div class="col-lg-12">
                 <h2 class="page-header">@ViewBag.Title</h2>
             </div>
+            @if (Model.TieneStockSinCargar)
+            {
+            <div>
+                <h4 class="page-header" style="color:red">Debe cargar el stock para generar un pedido. Dirijase al Menu Principal > Gestión de Insumos</h4>
+            </div>
+            }
+
         </div>
         <div class="row">
             <div class="col-lg-12">
@@ -39,7 +46,7 @@
                                     <td>@item.Stock</td>
 
                                     <td>
-                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" @{ if (item.OutStock.Value) { @: disabled="disabled"
+                                        <input type="number" id="quantity" class="clsQuantity" name="quantity" min="0" @{ if (item.OutStock.Value || Model.TieneStockSinCargar) { @: disabled="disabled"
                                                } }>
                                     </td>
                                 </tr>
@@ -50,7 +57,10 @@
             </div>
         </div>
         <div style="float:right">
-            <button type="button" id="btnGuardar" class="btn btn-primary">Guardar</button>
+            @if (!Model.TieneStockSinCargar)
+            {
+                <button type="button" id="btnGuardar" class="btn btn-primary">Guardar</button>
+            }
             <button type="button" id="btnCancelar" class="btn btn-link">Cancelar</button>
             @Html.ActionLink("Volver", "Index", "Orders", new { @class = "btn btn-secondary" })
         </div>
